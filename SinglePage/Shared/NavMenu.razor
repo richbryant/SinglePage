@@ -1,4 +1,6 @@
-﻿<Bar Breakpoint="Breakpoint.FullHD" Class="fixed-top navbar-light" id="mainNav">
+﻿@inject IJSRuntime JSRuntime
+@implements IDisposable
+<Bar Breakpoint="Breakpoint.FullHD" Class="@_navCss" id="mainNav">
     <BarBrand>Start Bootstrap</BarBrand>
     <BarToggler/>
     <BarMenu id="navbarResponsive">
@@ -18,3 +20,36 @@
         </BarStart>
     </BarMenu>
 </Bar>
+
+@code{
+
+    string _navCss = "fixed-top navbar-light";
+    const string DarkNav = "fixed-top navbar-light";
+    const string LightNav = "fixed-top navbar-light navbar-shrink";
+    DotNetObjectReference<NavMenu> ObjectReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            ObjectReference = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("blazorHelpers.lightMenu", ObjectReference);
+        }
+    }
+
+    [JSInvokable("SetNavMenuClass")]
+    public void SetNavMenuClass(string offset)
+    {
+        _navCss = offset != "page-top" ? LightNav : DarkNav;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        ObjectReference?.Dispose();
+    }
+
+}
+
